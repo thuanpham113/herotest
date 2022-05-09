@@ -1,5 +1,5 @@
 <template>
-  <div id="ARScene"></div>
+  <div id="app"></div>
 </template>
 
 <script>
