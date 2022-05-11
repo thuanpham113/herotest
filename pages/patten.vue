@@ -1,7 +1,5 @@
 <template>
-  <div id="ARScene">
-      {{camera.matrix}}
-  </div>
+  <div id="ARScene"></div>
 </template>
 
 <script>
@@ -12,48 +10,46 @@ import {
   ArToolkitContext,
   ArMarkerControls,
 } from "@ar-js-org/ar.js/three.js/build/ar-threex";
-import { GLTFLoader } from "../node_modules/three/examples/jsm/loaders/GLTFLoader";
 
 export default {
   name: "ARScene",
+  data() {
+    return {
+      scene: null,
+      renderer: null,
+      camera: null,
+      arToolkitContext: null,
+      arToolkitSource: null,
+    };
+  },
   mounted() {
     ArToolkitContext.baseURL = "./";
     console.log("ARScene mounted");
 
     // init renderer
-    var renderer = new THREE.WebGLRenderer({
+    this.renderer = new THREE.WebGLRenderer({
       antialias: true,
       alpha: true,
-      precision: "mediump",
     });
 
-    var clock = new THREE.Clock();
-
-    var mixers = [];
-
-    renderer.setClearColor(new THREE.Color("lightgrey"), 0);
+    this.renderer.setClearColor(new THREE.Color("lightgrey"), 0);
     // renderer.setPixelRatio( 2 );
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.domElement.style.position = "absolute";
-    renderer.domElement.style.top = "0px";
-    renderer.domElement.style.left = "0px";
-    document.body.appendChild(renderer.domElement); // We should be able to specify an html element to append AR.js related elements to.
-
-    // array of functions for the rendering loop
-    var onRenderFcts = [];
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.domElement.style.position = "absolute";
+    this.renderer.domElement.style.top = "0px";
+    this.renderer.domElement.style.left = "0px";
+    document.body.appendChild(this.renderer.domElement); // We should be able to specify an html element to append AR.js related elements to.
 
     // init scene and camera
-    var scene = new THREE.Scene();
-    var light = new THREE.AmbientLight(0xffffff);
-    scene.add(light);
+    this.scene = new THREE.Scene();
 
     //////////////////////////////////////////////////////////////////////////////////
     //		Initialize a basic camera
-    //////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////-////////////////////////////////////////////////
 
     // Create a camera
-    var camera = new THREE.Camera();
-    scene.add(camera);
+    this.camera = new THREE.Camera();
+    this.scene.add(this.camera);
     const artoolkitProfile = new ArToolkitProfile();
     artoolkitProfile.sourceWebcam(); // Is there good reason for having a function to set the sourceWebcam but not the displayWidth/Height etc?
 
@@ -66,41 +62,30 @@ export default {
       sourceHeight: 480,
       // resolution displayed for the source
       displayWidth: window.innerWidth,
-      displayHeight:window.innerHeight,
+      displayHeight: window.innerHeight,
     };
 
     Object.assign(artoolkitProfile.sourceParameters, additionalParameters);
     console.log(artoolkitProfile.sourceParameters); // now includes the additionalParameters
 
-    const arToolkitSource = new ArToolkitSource(
+    this.arToolkitSource = new ArToolkitSource(
       artoolkitProfile.sourceParameters
     );
 
-    arToolkitSource.init(function onReady() {
-      onResize();
-    });
+    this.arToolkitSource.init(this.onReady);
 
     // handle resize
-    window.addEventListener("resize", function () {
-      onResize();
-    });
+    window.addEventListener("resize", this.onReady);
 
     // resize is not called for the canvas on init. The canvas with the cube seems to be resized correctly at start.
     // Is that maybe a vue-specific problem?
-    function onResize() {
-      arToolkitSource.onResizeElement();
-      arToolkitSource.copyElementSizeTo(renderer.domElement);
-      if (arToolkitContext.arController !== null) {
-        arToolkitSource.copyElementSizeTo(arToolkitContext.arController.canvas);
-      }
-    }
 
     ////////////////////////////////////////////////////////////////////////////////
     //          initialize arToolkitContext
     ////////////////////////////////////////////////////////////////////////////////
 
     // create atToolkitContext
-    var arToolkitContext = new ArToolkitContext({
+    this.arToolkitContext = new ArToolkitContext({
       debug: false,
       cameraParametersUrl: ArToolkitContext.baseURL + "data/camera_para.dat",
       detectionMode: "mono",
@@ -109,34 +94,38 @@ export default {
       imageSmoothingEnabled: true, // There is still a warning about mozImageSmoothingEnabled when using Firefox
     });
 
+    const arToolkitSource = this.arToolkitSource;
+    const arToolkitContext = this.arToolkitContext;
+
     // initialize it
-    arToolkitContext.init(function onCompleted() {
+    const camera = this.camera;
+    this.arToolkitContext.init(function onCompleted() {
       // copy projection matrix to camera
       camera.projectionMatrix.copy(arToolkitContext.getProjectionMatrix());
     });
 
     // update artoolkit on every frame
-    onRenderFcts.push(function () {
-      if (arToolkitSource.ready === false) return;
-
-      arToolkitContext.update(arToolkitSource.domElement);
-    });
 
     ////////////////////////////////////////////////////////////////////////////////
     //          Create a ArMarkerControls
     ////////////////////////////////////////////////////////////////////////////////
 
     var markerGroup = new THREE.Group();
-    scene.add(markerGroup);
+    this.scene.add(markerGroup);
 
-    var markerControls = new ArMarkerControls(arToolkitContext, camera, {
-      type: "pattern",
-      patternUrl: ArToolkitContext.baseURL + "data/patt.hiro",
-      smooth: true,
-      smoothCount: 5,
-      smoothTolerance: 0.01,
-      smoothThreshold: 2,
-    });
+    var markerControls = new ArMarkerControls(
+      this.arToolkitContext,
+      markerGroup,
+      {
+        type: "pattern",
+      patternUrl: ArToolkitContext.baseURL + "data/synodepattern.patt",
+        smooth: true,
+        smoothCount: 5,
+        smoothTolerance: 0.01,
+        smoothThreshold: 2,
+        labelingMode: 'black_region'
+      }
+    );
 
     //////////////////////////////////////////////////////////////////////////////////
     //		add an object in the scene
@@ -149,108 +138,57 @@ export default {
     markerScene.add(mesh);
 
     // add a torus knot
-    onRenderFcts.push(function (delta) {
-      mesh.rotation.x += delta * Math.PI;
+    var geometry = new THREE.BoxGeometry(1, 1, 1);
+    var material = new THREE.MeshNormalMaterial({
+      transparent: true,
+      opacity: 0.5,
+      side: THREE.DoubleSide,
     });
-    var root = new THREE.Object3D();
-    scene.add(root);
+    var mesh = new THREE.Mesh(geometry, material);
+    mesh.position.y = geometry.parameters.height / 2;
+    markerScene.add(mesh);
+
+    var geometry = new THREE.TorusKnotGeometry(0.3, 0.1, 64, 16);
+    var material = new THREE.MeshNormalMaterial();
+    var mesh = new THREE.Mesh(geometry, material);
+    mesh.position.y = 0.5;
+    markerScene.add(mesh);
+    requestAnimationFrame(this.animate);
+    
     //////////////////////////////////////////////////////////////////////////////////
     //		render the whole thing on the page
     //////////////////////////////////////////////////////////////////////////////////
-    var threeGLTFLoader = new GLTFLoader();
-    var model;
-
-    threeGLTFLoader.load(
-      "http://localhost:3000/data/Flamingo.glb",
-      function (gltf) {
-        model = gltf.scene.children[0];
-        model.name = "Flamingo";
-
-        var animation = gltf.animations[0];
-        var mixer = new THREE.AnimationMixer(model);
-        mixers.push(mixer);
-        var action = mixer.clipAction(animation);
-        action.play();
-
-        root.matrixAutoUpdate = false;
-        root.add(model);
-        scene.add(model);
-
-        model.scale.set(0.01, 0.01, 0.01);
-
-        //////////////////////////////////////////////////////////////////////////////////
-        //		render the whole thing on the page
-        //////////////////////////////////////////////////////////////////////////////////
-
-        var animate = function () {
-          requestAnimationFrame(animate);
-
-          if (mixers.length > 0) {
-            for (var i = 0; i < mixers.length; i++) {
-              mixers[i].update(clock.getDelta());
-            }
-          }
-
-          if (!arToolkitSource.ready) {
-            return;
-          }
-
-          arToolkitContext.update(arToolkitSource.domElement);
-
-          // update scene.visible if the marker is seen
-          scene.visible = camera.visible;
-
-          renderer.render(scene, camera);
-        };
-
-        requestAnimationFrame(animate);
+    // run the rendering loop
+  },
+  methods: {
+    animate(){
+      requestAnimationFrame(this.animate);
+       if (!this.arToolkitSource.ready) {
+        return;
       }
-    );
+
+      this.arToolkitContext.update(this.arToolkitSource.domElement);
+
+      // update scene.visible if the marker is seen
+      this.scene.visible = this.camera.visible;
+
+      this.renderer.render(this.scene, this.camera);
+      
+    },
+    onResize() {
+      this.arToolkitSource.onResizeElement();
+      this.arToolkitSource.copyElementSizeTo(this.renderer.domElement);
+      if (this.arToolkitContext.arController !== null) {
+        this.arToolkitSource.copyElementSizeTo(
+          this.arToolkitContext.arController.canvas
+        );
+      }
+    },
+    onReady() {
+      this.onResize();
+    },
   },
 };
 </script>
 
-<style>
-.arjs-video{
-    width: 100%;
-  height: 100%;
-}
-.arjs-loader {
-  margin: 0 auto;
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.arjs-loader-spinner {
-  z-index: 10;
-  -webkit-transform: spin 1s linear infinite;
-  animation: spin 1s linear infinite;
-  border: 3px solid #ddd;
-  border-top: 3px solid #42a5f5;
-  border-radius: 50%;
-  height: 75px;
-  width: 75px;
-}
-
-@-webkit-keyframes spin {
-  to {
-    border-top-color: #42a5f5;
-    -webkit-transform: rotate(360deg);
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes spin {
-  to {
-    border-top-color: #42a5f5;
-    -webkit-transform: rotate(360deg);
-    transform: rotate(360deg);
-  }
-}
-</style>
+<style></style>

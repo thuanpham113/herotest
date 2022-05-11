@@ -43,9 +43,6 @@ export default {
     // init scene and camera
     this.scene = new THREE.Scene();
 
-    var light = new THREE.AmbientLight(0xffffff);
-    this.scene.add(light);
-
     //////////////////////////////////////////////////////////////////////////////////
     //		Initialize a basic camera
     //////////////////////////////////-////////////////////////////////////////////////
@@ -118,17 +115,14 @@ export default {
 
     var markerControls = new ArMarkerControls(
       this.arToolkitContext,
-      this.camera,
+      markerGroup,
       {
-        type: "pattern",
-      	patternUrl: ArToolkitContext.baseURL + "data/patt.hiro",
-        smooth: true,
-        smoothCount: 5,
-        smoothTolerance: 0.01,
-        smoothThreshold: 2,
+       type: "nft",
+				descriptorsUrl: "./data/pinball",
+				changeMatrixMode: "cameraTransformMatrix",
       }
     );
-    this.scene.visible = false;
+
     //////////////////////////////////////////////////////////////////////////////////
     //		add an object in the scene
     //////////////////////////////////////////////////////////////////////////////////
@@ -138,8 +132,9 @@ export default {
 
     var mesh = new THREE.AxesHelper();
     markerScene.add(mesh);
+
     // add a torus knot
-    var geometry = new THREE.BoxGeometry(1, 1, 1);
+    var geometry = new THREE.BoxGeometry(1000, 1000, 1000);
     var material = new THREE.MeshNormalMaterial({
       transparent: true,
       opacity: 0.5,
@@ -154,25 +149,17 @@ export default {
     var mesh = new THREE.Mesh(geometry, material);
     mesh.position.y = 0.5;
     markerScene.add(mesh);
-
-   /*  this.$assemblyLoader.loadGLTF(
-      "http://localhost:3000/data/Flamingo.glb",
-      (gltf) => {
-        gltf.scene.children[0].scale.set(0.04,0.04,0.04)
-        markerScene.add(gltf.scene.children[0]);
-      }
-    ); */
     requestAnimationFrame(this.animate);
-
+    
     //////////////////////////////////////////////////////////////////////////////////
     //		render the whole thing on the page
     //////////////////////////////////////////////////////////////////////////////////
     // run the rendering loop
   },
   methods: {
-    animate() {
+    animate(){
       requestAnimationFrame(this.animate);
-      if (!this.arToolkitSource.ready) {
+       if (!this.arToolkitSource.ready) {
         return;
       }
 
@@ -182,6 +169,7 @@ export default {
       this.scene.visible = this.camera.visible;
 
       this.renderer.render(this.scene, this.camera);
+      
     },
     onResize() {
       this.arToolkitSource.onResizeElement();
@@ -193,7 +181,7 @@ export default {
       }
     },
     onReady() {
-      setTimeout(this.onResize(), 1000);
+      this.onResize();
     },
   },
 };
