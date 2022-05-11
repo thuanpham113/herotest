@@ -118,7 +118,7 @@ export default {
       markerGroup,
       {
         type: "pattern",
-      patternUrl: ArToolkitContext.baseURL + "data/synodepattern.patt",
+      patternUrl: ArToolkitContext.baseURL + "data/pattern-photo_2022-05-11_21-00-13.patt",
         smooth: true,
         smoothCount: 5,
         smoothTolerance: 0.01,
