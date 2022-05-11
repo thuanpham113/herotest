@@ -3,27 +3,31 @@
 <script>
 import * as THREE from "three";
 import * as THREEx from "@ar-js-org/ar.js/three.js/build/ar-threex";
+import { GLTFLoader } from "../node_modules/three/examples/jsm/loaders/GLTFLoader";
 export default {
   mounted() {
     //////////////////////////////////////////////////////////////////////////////////
     //		Init
     //////////////////////////////////////////////////////////////////////////////////
 
-    // init renderer
     var renderer = new THREE.WebGLRenderer({
       antialias: true,
       alpha: true,
+      precision: "mediump",
     });
+
+    var clock = new THREE.Clock();
+
+    var mixers = [];
+
+    renderer.setPixelRatio(window.devicePixelRatio);
+
     renderer.setClearColor(new THREE.Color("lightgrey"), 0);
-    renderer.setSize(640, 480);
+    renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.domElement.style.position = "absolute";
     renderer.domElement.style.top = "0px";
     renderer.domElement.style.left = "0px";
     document.body.appendChild(renderer.domElement);
-
-    // array of functions for the rendering loop
-    var onRenderFcts = [];
-    var arToolkitContext, arMarkerControls;
 
     // init scene and camera
     var scene = new THREE.Scene();
@@ -36,41 +40,24 @@ export default {
     var camera = new THREE.Camera();
     scene.add(camera);
 
+    var light = new THREE.AmbientLight(0xffffff);
+    scene.add(light);
+
     ////////////////////////////////////////////////////////////////////////////////
     //          handle arToolkitSource
     ////////////////////////////////////////////////////////////////////////////////
 
     var arToolkitSource = new THREEx.ArToolkitSource({
-      // to read from the webcam
       sourceType: "webcam",
-
-      sourceWidth: window.innerWidth > window.innerHeight ? 640 : 480,
-      sourceHeight: window.innerWidth > window.innerHeight ? 480 : 640,
-
-      // // to read from an image
-      // sourceType : 'image',
-      // sourceUrl : THREEx.ArToolkitContext.baseURL + '../data/images/img.jpg',
-
-      // to read from a video
-      // sourceType : 'video',
-      // sourceUrl : THREEx.ArToolkitContext.baseURL + '../data/videos/headtracking.mp4',
+      sourceWidth: 480,
+      sourceHeight: 640,
     });
 
     arToolkitSource.init(function onReady() {
-      arToolkitSource.domElement.addEventListener("canplay", () => {
-        console.log(
-          "canplay",
-          "actual source dimensions",
-          arToolkitSource.domElement.videoWidth,
-          arToolkitSource.domElement.videoHeight
-        );
-
-        initARContext();
-      });
-      window.arToolkitSource = arToolkitSource;
-      setTimeout(() => {
+      // use a resize to fullscreen mobile devices
+      setTimeout(function () {
         onResize();
-      }, 2000);
+      }, 1000);
     });
 
     // handle resize
@@ -78,139 +65,149 @@ export default {
       onResize();
     });
 
+    // listener for end loading of NFT marker
+    window.addEventListener("arjs-nft-loaded", function (ev) {
+      console.log(ev);
+    });
+
     function onResize() {
       arToolkitSource.onResizeElement();
       arToolkitSource.copyElementSizeTo(renderer.domElement);
-      if (window.arToolkitContext.arController !== null) {
-        arToolkitSource.copyElementSizeTo(
-          window.arToolkitContext.arController.canvas
-        );
+      console.log("arToolkitContext.arController");
+      console.log(arToolkitContext.arController);
+      if (arToolkitContext.arController !== null) {
+        arToolkitSource.copyElementSizeTo(arToolkitContext.arController.canvas);
       }
     }
+
     ////////////////////////////////////////////////////////////////////////////////
     //          initialize arToolkitContext
     ////////////////////////////////////////////////////////////////////////////////
 
-    function initARContext() {
-      // create atToolkitContext
-      arToolkitContext = new THREEx.ArToolkitContext({
-        cameraParametersUrl:
-          THREEx.ArToolkitContext.baseURL + "../data/data/camera_para.dat",
+    // create atToolkitContext
+    var arToolkitContext = new THREEx.ArToolkitContext(
+      {
         detectionMode: "mono",
-      });
-      // initialize it
-      arToolkitContext.init(() => {
-        // copy projection matrix to camera
-        camera.projectionMatrix.copy(arToolkitContext.getProjectionMatrix());
-
-        arToolkitContext.arController.orientation = getSourceOrientation();
-        arToolkitContext.arController.options.orientation =
-          getSourceOrientation();
-
-        console.log("arToolkitContext", arToolkitContext);
-        window.arToolkitContext = arToolkitContext;
-      });
-
-      // MARKER
-      arMarkerControls = new THREEx.ArMarkerControls(arToolkitContext, camera, {
-        type: "pattern",
-        patternUrl: THREEx.ArToolkitContext.baseURL + "../data/data/patt.hiro",
-        // patternUrl : THREEx.ArToolkitContext.baseURL + '../data/data/patt.kanji',
-        // as we controls the camera, set changeMatrixMode: 'cameraTransformMatrix'
-        changeMatrixMode: "cameraTransformMatrix",
-      });
-
-      scene.visible = false;
-
-      console.log("ArMarkerControls", arMarkerControls);
-      window.arMarkerControls = arMarkerControls;
-    }
-
-    function getSourceOrientation() {
-      if (!arToolkitSource) {
-        return null;
+        canvasWidth: 480,
+        canvasHeight: 640,
+      },
+      {
+        sourceWidth: 480,
+        sourceHeight: 640,
       }
-
-      console.log(
-        "actual source dimensions",
-        arToolkitSource.domElement.videoWidth,
-        arToolkitSource.domElement.videoHeight
-      );
-
-      if (
-        arToolkitSource.domElement.videoWidth >
-        arToolkitSource.domElement.videoHeight
-      ) {
-        console.log("source orientation", "landscape");
-        return "landscape";
-      } else {
-        console.log("source orientation", "portrait");
-        return "portrait";
-      }
-    }
-
-    // update artoolkit on every frame
-    onRenderFcts.push(function () {
-      if (!arToolkitContext || !arToolkitSource || !arToolkitSource.ready) {
-        return;
-      }
-
-      arToolkitContext.update(arToolkitSource.domElement);
-
-      // update scene.visible if the marker is seen
-      scene.visible = camera.visible;
+    );
+    console.log("arToolkitContext");
+    console.log(arToolkitContext);
+    // initialize it
+    arToolkitContext.init(function onCompleted() {
+      // copy projection matrix to camera
+      camera.projectionMatrix.copy(arToolkitContext.getProjectionMatrix());
     });
 
+    ////////////////////////////////////////////////////////////////////////////////
+    //          Create a ArMarkerControls
+    ////////////////////////////////////////////////////////////////////////////////
+
+    // init controls for camera
+    var markerControls = new THREEx.ArMarkerControls(arToolkitContext, camera, {
+      type: "nft",
+      descriptorsUrl: "data/pattern-iconsynode",
+      changeMatrixMode: "cameraTransformMatrix",
+    });
+    scene.visible = false;
+
+    var root = new THREE.Object3D();
+    scene.add(root);
+    console.log(markerControls);
+    console.log(camera);
     //////////////////////////////////////////////////////////////////////////////////
     //		add an object in the scene
     //////////////////////////////////////////////////////////////////////////////////
 
-    // add a torus knot
-    var geometry = new THREE.BoxGeometry(1, 1, 1);
-    var material = new THREE.MeshNormalMaterial({
-      transparent: true,
-      opacity: 0.5,
-      side: THREE.DoubleSide,
-    });
-    var mesh = new THREE.Mesh(geometry, material);
-    mesh.position.y = geometry.parameters.height / 2;
-    scene.add(mesh);
+    var threeGLTFLoader = new GLTFLoader();
+    var model;
 
-    var geometry = new THREE.TorusKnotGeometry(0.3, 0.1, 64, 16);
-    var material = new THREE.MeshNormalMaterial();
-    var mesh = new THREE.Mesh(geometry, material);
-    mesh.position.y = 0.5;
-    scene.add(mesh);
+    threeGLTFLoader.load("./data/synode_24_assets_Big_Berkey_Water_Filter_System_No_Animation_Apr19.glb", function (gltf) {
+      model = gltf.scene.children[0];
+      model.scale.set(300,300,300)
+      console.log("model")
+      console.log(model)
+      model.name = "Flamingo";
 
-    onRenderFcts.push(function (delta) {
-      mesh.rotation.x += Math.PI * delta;
-    });
+      var animation = gltf.animations[0];
 
-    //////////////////////////////////////////////////////////////////////////////////
-    //		render the whole thing on the page
-    //////////////////////////////////////////////////////////////////////////////////
+      root.matrixAutoUpdate = false;
+      root.add(model);
 
-    // render the scene
-    onRenderFcts.push(function () {
-      renderer.render(scene, camera);
-    });
+      model.position.z = -200;
+      model.position.x = 100;
+      model.position.y = 100;
 
-    // run the rendering loop
-    var lastTimeMsec = null;
-    requestAnimationFrame(function animate(nowMsec) {
-      // keep looping
+      //////////////////////////////////////////////////////////////////////////////////
+      //		render the whole thing on the page
+      //////////////////////////////////////////////////////////////////////////////////
+
+      var animate = function () {
+        requestAnimationFrame(animate);
+
+       
+
+        if (!arToolkitSource.ready) {
+          return;
+        }
+
+        arToolkitContext.update(arToolkitSource.domElement);
+
+        // update scene.visible if the marker is seen
+        scene.visible = camera.visible;
+
+        renderer.render(scene, camera);
+      };
+
       requestAnimationFrame(animate);
-      // measure time
-      lastTimeMsec = lastTimeMsec || nowMsec - 1000 / 60;
-      var deltaMsec = Math.min(200, nowMsec - lastTimeMsec);
-      lastTimeMsec = nowMsec;
-      // call each update function
-      onRenderFcts.forEach(function (onRenderFct) {
-        onRenderFct(deltaMsec / 1000, nowMsec / 1000);
-      });
+      console.console;
     });
   },
 };
 </script>
 
-<style></style>
+<style>
+.arjs-loader {
+  margin: 0 auto;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.arjs-loader-spinner {
+  z-index: 10;
+  -webkit-transform: spin 1s linear infinite;
+  animation: spin 1s linear infinite;
+  border: 3px solid #ddd;
+  border-top: 3px solid #42a5f5;
+  border-radius: 50%;
+  height: 75px;
+  width: 75px;
+}
+
+@-webkit-keyframes spin {
+  to {
+    border-top-color: #42a5f5;
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spin {
+  to {
+    border-top-color: #42a5f5;
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+</style>
