@@ -61,8 +61,8 @@ export default {
 
     this.arToolkitSource = new THREEx.ArToolkitSource({
       sourceType: "webcam",
-      sourceWidth: 480,
-      sourceHeight: 640,
+      sourceWidth: window.innerWidth > window.innerHeight ? 640 : 480,
+      sourceHeight: window.innerWidth > window.innerHeight ? 480 : 640,
       displayWidth: window.innerWidth,
       displayHeight: window.innerHeight,
     });
@@ -104,18 +104,18 @@ export default {
     this.arToolkitContext = new THREEx.ArToolkitContext(
       {
         detectionMode: "mono",
-        canvasWidth: 480,
-        canvasHeight: 640,
+        canvasWidth: window.innerWidth > window.innerHeight ? 640 : 480,
+        canvasHeight: window.innerWidth > window.innerHeight ? 480 : 640,
       },
       {
-        sourceWidth: 480,
-        sourceHeight: 640,
+        sourceWidth: window.innerWidth > window.innerHeight ? 640 : 480,
+        sourceHeight: window.innerWidth > window.innerHeight ? 480 : 640,
       }
     );
     console.log("arToolkitContext");
     console.log(this.arToolkitContext);
     // initialize it
-    this.arToolkitContext.init(()=> {
+    this.arToolkitContext.init(() => {
       // copy projection matrix to camera
       this.camera.projectionMatrix.copy(
         this.arToolkitContext.getProjectionMatrix()
@@ -149,30 +149,32 @@ export default {
     var threeGLTFLoader = new GLTFLoader();
     var model;
 
-    threeGLTFLoader.load("http://localhost:3000/data/synode_20_assets_GLB_NO_Animation4.glb", (gltf)=> {
-      model = gltf.scene.children[0];
-      model.name = "Flamingo";
-      model.scale.set(400,400,400)
-      var animation = gltf.animations[0];
-      var mixer = new THREE.AnimationMixer(model);
-      this.mixers.push(mixer);
-      var action = mixer.clipAction(animation);
-      action.play();
+    threeGLTFLoader.load(
+      "https://storage.googleapis.com/download/storage/v1/b/rely-media/o/synode%2F20%2Fassets%2FGLB_NO_Animation4.glb?generation=1650634453394030&alt=media",
+      (gltf) => {
+        model = gltf.scene.children[0];
+        model.name = "Flamingo";
+        model.scale.set(400, 400, 400);
+        var animation = gltf.animations[0];
+        var mixer = new THREE.AnimationMixer(model);
+        this.mixers.push(mixer);
+        var action = mixer.clipAction(animation);
+        action.play();
 
-      root.matrixAutoUpdate = false;
-      root.add(model);
+        root.matrixAutoUpdate = false;
+        root.add(model);
 
-      model.position.z = -200;
-      model.position.x = 100;
-      model.position.y = 100;
+        model.position.z = -200;
+        model.position.x = 100;
+        model.position.y = 100;
 
-      //////////////////////////////////////////////////////////////////////////////////
-      //		render the whole thing on the page
-      //////////////////////////////////////////////////////////////////////////////////
+        //////////////////////////////////////////////////////////////////////////////////
+        //		render the whole thing on the page
+        //////////////////////////////////////////////////////////////////////////////////
 
-
-      requestAnimationFrame(this.animate);
-    });
+        requestAnimationFrame(this.animate);
+      }
+    );
   },
   methods: {
     animate() {
@@ -192,7 +194,7 @@ export default {
 
       // update this.scene.visible if the marker is seen
       this.scene.visible = this.camera.visible;
-      console.log(this.camera.position.x)
+      console.log(this.camera.position.x);
       this.renderer.render(this.scene, this.camera);
     },
     onResize() {
