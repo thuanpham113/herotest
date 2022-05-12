@@ -92,6 +92,7 @@ export default {
       canvasWidth: 640,
       canvasHeight: 490,
       imageSmoothingEnabled: true, // There is still a warning about mozImageSmoothingEnabled when using Firefox
+      labelingMode: 'white_region'
     });
 
     const arToolkitSource = this.arToolkitSource;
@@ -118,7 +119,7 @@ export default {
       markerGroup,
       {
         type: "pattern",
-      patternUrl: ArToolkitContext.baseURL + "data/pattern-photo_2022-05-11_21-00-13.patt",
+      patternUrl: ArToolkitContext.baseURL + "data/pattern-logo.patt",
         smooth: true,
         smoothCount: 5,
         smoothTolerance: 0.01,

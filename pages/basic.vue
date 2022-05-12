@@ -49,8 +49,10 @@ export default {
 
     var arToolkitSource = new THREEx.ArToolkitSource({
       sourceType: "webcam",
-      sourceWidth: 480,
-      sourceHeight: 640,
+      ssourceWidth: window.innerWidth,
+      sourceHeight: window.innerHeight,
+      displayWidth: window.innerWidth,
+      displayHeight: window.innerHeight,
     });
 
     arToolkitSource.init(function onReady() {
@@ -111,7 +113,7 @@ export default {
     // init controls for camera
     var markerControls = new THREEx.ArMarkerControls(arToolkitContext, camera, {
       type: "nft",
-      descriptorsUrl: "data/pattern-iconsynode",
+      descriptorsUrl: "./data/synode",
       changeMatrixMode: "cameraTransformMatrix",
     });
     scene.visible = false;
@@ -127,21 +129,46 @@ export default {
     var threeGLTFLoader = new GLTFLoader();
     var model;
 
-    threeGLTFLoader.load("./data/synode_24_assets_Big_Berkey_Water_Filter_System_No_Animation_Apr19.glb", function (gltf) {
-      model = gltf.scene.children[0];
-      model.scale.set(300,300,300)
-      console.log("model")
-      console.log(model)
+    /*var markerGroup = new THREE.Group();
+    scene.add(markerGroup);
+
+    var markerScene = new THREE.Scene();
+    markerGroup.add(markerScene);
+
+    var mesh = new THREE.AxesHelper();
+    markerScene.add(mesh);
+
+    var geometry = new THREE.BoxGeometry(300, 300, 300);
+    var material = new THREE.MeshNormalMaterial({
+      transparent: true,
+      opacity: 0.5,
+      side: THREE.DoubleSide,
+    });
+    var mesh = new THREE.Mesh(geometry, material);
+    mesh.position.y = geometry.parameters.height / 2;
+    markerScene.add(mesh);
+
+    var geometry = new THREE.TorusKnotGeometry(0.3, 0.1, 64, 16);
+    var material = new THREE.MeshNormalMaterial();
+    var mesh = new THREE.Mesh(geometry, material);
+    mesh.position.y = 0.5;
+    markerScene.add(mesh); */
+
+    threeGLTFLoader.load("./data/Flamingo.glb", function (gltf) {
+      model = gltf.scene;
+      model.scale.set(50, 50, 50);
       model.name = "Flamingo";
 
       var animation = gltf.animations[0];
 
       root.matrixAutoUpdate = false;
       root.add(model);
+      console.log("model");
+      console.log(root);
 
-      model.position.z = -200;
+     /*  model.position.z = -200;
       model.position.x = 100;
-      model.position.y = 100;
+      model.position.y = 100; */
 
       //////////////////////////////////////////////////////////////////////////////////
       //		render the whole thing on the page
@@ -150,7 +177,13 @@ export default {
       var animate = function () {
         requestAnimationFrame(animate);
 
-       
+        console.log(
+          camera.position.x,
+          " ",
+          camera.position.y,
+          " ",
+          camera.position.z
+        );
 
         if (!arToolkitSource.ready) {
           return;

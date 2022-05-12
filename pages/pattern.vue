@@ -5,7 +5,6 @@
 <script>
 import * as THREE from "three";
 import * as THREEx from "@ar-js-org/ar.js/three.js/build/ar-threex";
-
 export default {
 	data() {
 		return {
@@ -53,8 +52,10 @@ export default {
 			// sourceType : 'video',
 			// sourceUrl : THREEx.ArToolkitContext.baseURL + '../data/videos/headtracking.mp4',
 		});
+		const value=window	
+		console.log(value)
 		this.arToolkitSource.init(this.onReady);
-		/* window.addEventListener("resize", this.onResize());
+		 window.addEventListener("resize", this.onResize());
 		this.onRenderFcts.push(() => {
 			if (
 				!this.arToolkitContext ||
@@ -68,7 +69,7 @@ export default {
 
 			// update scene.visible if the marker is seen
 			this.scene.visible = this.camera.visible;
-		});
+		});/*
 		var geometry = new THREE.BoxGeometry(1, 1, 1);
 		var material = new THREE.MeshNormalMaterial({
 			transparent: true,
@@ -112,15 +113,18 @@ export default {
 				this.onResize();
 			}, 2000);
 		},
-		/* onResize() {
+		onResize() {
 			this.arToolkitSource.onResizeElement();
-			this.arToolkitSource.copyElementSizeTo(renderer.domElement);
-			if (window.arToolkitContext.arController !== null) {
+			this.arToolkitSource.copyElementSizeTo(this.renderer.domElement);
+			console.log("window")
+			const value = window
+			console.log(value)
+			if (this.arToolkitContext.arController !== null) {
 				this.arToolkitSource.copyElementSizeTo(
-					window.arToolkitContext.arController.canvas
+					this.arToolkitContext.arController.canvas
 				);
 			}
-		},*/
+		},
 		initARContext() {
 			// create atToolkitContext
 			this.arToolkitContext = new THREEx.ArToolkitContext({
