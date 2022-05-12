@@ -4,6 +4,7 @@
 import * as THREE from "three";
 import * as THREEx from "@ar-js-org/ar.js/three.js/build/ar-threex";
 import { GLTFLoader } from "../node_modules/three/examples/jsm/loaders/GLTFLoader";
+import { RoomEnvironment } from '../node_modules/three/examples/jsm/environments/RoomEnvironment';
 export default {
   data() {
     return {
@@ -43,7 +44,8 @@ export default {
 
     // init scene and camera
     this.scene = new THREE.Scene();
-
+    const pmremGenerator = new THREE.PMREMGenerator( this.renderer );
+		this.scene.environment = pmremGenerator.fromScene( new RoomEnvironment(), 0.04 ).texture;
     //////////////////////////////////////////////////////////////////////////////////
     //		Initialize a basic camera
     //////////////////////////////////////////////////////////////////////////////////
