@@ -101,10 +101,10 @@ export default {
     const arToolkitContext = this.arToolkitContext;
 
     // initialize it
-    const camera = this.camera;
-    this.arToolkitContext.init(function onCompleted() {
+
+    this.arToolkitContext.init(()=> {
       // copy projection matrix to camera
-      camera.projectionMatrix.copy(arToolkitContext.getProjectionMatrix());
+      this.camera.projectionMatrix.copy(this.arToolkitContext.getProjectionMatrix());
     });
 
     // update artoolkit on every frame
@@ -118,7 +118,7 @@ export default {
 
     var markerControls = new ArMarkerControls(
       this.arToolkitContext,
-      this.camera,
+      markerGroup,
       {
         type: "pattern",
       	patternUrl: ArToolkitContext.baseURL + "data/patt.hiro",
@@ -180,7 +180,6 @@ export default {
 
       // update scene.visible if the marker is seen
       this.scene.visible = this.camera.visible;
-
       this.renderer.render(this.scene, this.camera);
     },
     onResize() {
