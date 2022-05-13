@@ -60,7 +60,8 @@ export default {
     ////////////////////////////////////////////////////////////////////////////////
     //          handle arToolkitSource
     ////////////////////////////////////////////////////////////////////////////////
-
+    var mesh = new THREE.AxesHelper();
+    this.scene.add(mesh);
     this.arToolkitSource = new THREEx.ArToolkitSource({
       sourceType: "webcam",
       sourceWidth: window.innerWidth > window.innerHeight ? 640 : 480,
@@ -134,7 +135,7 @@ export default {
       this.camera,
       {
         type: "nft",
-        descriptorsUrl: "./data/pinball",
+        descriptorsUrl: "./data/pattern-iconsynode",
         changeMatrixMode: "cameraTransformMatrix",
       }
     );
@@ -142,33 +143,28 @@ export default {
 
     var root = new THREE.Object3D();
     this.scene.add(root);
-    console.log(this.markerControls);
-    console.log(this.camera);
     //////////////////////////////////////////////////////////////////////////////////
     //		add an object in the this.scene
     //////////////////////////////////////////////////////////////////////////////////
-
+    
     var threeGLTFLoader = new GLTFLoader();
     var model;
 
     threeGLTFLoader.load(
-      "https://storage.googleapis.com/download/storage/v1/b/rely-media/o/synode%2F20%2Fassets%2FGLB_NO_Animation4.glb?generation=1650634453394030&alt=media",
+      "https://storage.googleapis.com/download/storage/v1/b/rely-media/o/synode%2F23%2Fassets%2FGLB.glb?generation=1652451211787861&alt=media",
       (gltf) => {
-        model = gltf.scene.children[0];
+        model = gltf.scene.children[1];
+        console.log("gltf")
+        
         model.name = "Flamingo";
-        model.scale.set(400, 400, 400);
-        var animation = gltf.animations[0];
-        var mixer = new THREE.AnimationMixer(model);
-        this.mixers.push(mixer);
-        var action = mixer.clipAction(animation);
-        action.play();
-
-        root.matrixAutoUpdate = false;
+        model.scale.set(5000, 5000, 5000);
+        
+        model.position.y = 400;
+        /*model.position.x = 100;
+        model.position.y = 100; */
         root.add(model);
-
-        model.position.z = -200;
-        model.position.x = 100;
-        model.position.y = 100;
+        console.log(root)
+        
 
         //////////////////////////////////////////////////////////////////////////////////
         //		render the whole thing on the page
