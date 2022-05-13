@@ -64,8 +64,8 @@ export default {
     this.scene.add(mesh);
     this.arToolkitSource = new THREEx.ArToolkitSource({
       sourceType: "webcam",
-      sourceWidth: window.innerWidth > window.innerHeight ? 640 : 480,
-      sourceHeight: window.innerWidth > window.innerHeight ? 480 : 640,
+      sourceWidth: window.innerWidth > window.innerHeight ? 1280 : 720,
+      sourceHeight: window.innerWidth > window.innerHeight ? 720 : 1280,
       displayWidth: window.innerWidth,
       displayHeight: window.innerHeight,
     });
@@ -107,12 +107,12 @@ export default {
     this.arToolkitContext = new THREEx.ArToolkitContext(
       {
         detectionMode: "mono",
-        canvasWidth: window.innerWidth > window.innerHeight ? 640 : 480,
-        canvasHeight: window.innerWidth > window.innerHeight ? 480 : 640,
+        canvasWidth: window.innerWidth > window.innerHeight ? 1280 : 720,
+        canvasHeight: window.innerWidth > window.innerHeight ? 720 : 1280,
       },
       {
-        sourceWidth: window.innerWidth > window.innerHeight ? 640 : 480,
-        sourceHeight: window.innerWidth > window.innerHeight ? 480 : 640,
+        sourceWidth: window.innerWidth > window.innerHeight ? 1280 : 720,
+        sourceHeight: window.innerWidth > window.innerHeight ? 720 : 1280,
       }
     );
     console.log("arToolkitContext");
@@ -135,7 +135,7 @@ export default {
       this.camera,
       {
         type: "nft",
-        descriptorsUrl: "./data/pattern-iconsynode",
+        descriptorsUrl: "./data/pinball",
         changeMatrixMode: "cameraTransformMatrix",
       }
     );
