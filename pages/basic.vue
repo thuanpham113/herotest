@@ -135,7 +135,7 @@ export default {
       this.camera,
       {
         type: "nft",
-        descriptorsUrl: "./data/pinball",
+        descriptorsUrl: "./data/pattern-iconsynode",
         changeMatrixMode: "cameraTransformMatrix",
       }
     );
@@ -146,7 +146,7 @@ export default {
     //////////////////////////////////////////////////////////////////////////////////
     //		add an object in the this.scene
     //////////////////////////////////////////////////////////////////////////////////
-    
+
     var threeGLTFLoader = new GLTFLoader();
     var model;
 
@@ -155,16 +155,16 @@ export default {
       (gltf) => {
         model = gltf.scene.children[1];
         console.log("gltf")
-        
+
         model.name = "Flamingo";
-        model.scale.set(5000, 5000, 5000);
-        
+        model.scale.set(1000, 1000, 1000);
+
         model.position.y = 400;
         /*model.position.x = 100;
         model.position.y = 100; */
         root.add(model);
         console.log(root)
-        
+
 
         //////////////////////////////////////////////////////////////////////////////////
         //		render the whole thing on the page
