@@ -27,15 +27,16 @@ export default {
 
     // init renderer
     this.renderer = new THREE.WebGLRenderer({
-      antialias: true,
+      antialias: true,  
       alpha: true,
     });
     this.renderer.setClearColor(new THREE.Color("lightgrey"), 0);
-    this.renderer.setSize(640, 480);
+    this.renderer.setSize(window.innerWidth,window.innerHeight);
     this.renderer.domElement.style.position = "absolute";
     this.renderer.domElement.style.top = "0px";
     this.renderer.domElement.style.left = "0px";
     document.body.appendChild(this.renderer.domElement);
+    this.renderer.setPixelRatio( window.devicePixelRatio );
 
     // init scene and camera
     this.scene = new THREE.Scene();
@@ -60,8 +61,8 @@ export default {
       // to read from the webcam
       sourceType: "webcam",
 
-      sourceWidth: window.innerWidth > window.innerHeight ? 640 : 480,
-      sourceHeight: window.innerWidth > window.innerHeight ? 480 : 640,
+      sourceWidth: window.innerWidth > window.innerHeight ? 1920 : 1080,
+      sourceHeight: window.innerWidth > window.innerHeight ? 1080 : 1920,
       displayWidth: window.innerWidth,
       displayHeight: window.innerHeight,
 
@@ -105,10 +106,19 @@ export default {
     var model;
 
     threeGLTFLoader.load(
-      "https://storage.googleapis.com/download/storage/v1/b/rely-media/o/synode%2F23%2Fassets%2FGLB.glb?generation=1652451211787861&alt=media",
+      "https://storage.googleapis.com/download/storage/v1/b/rely-media/o/synode%2F19%2Fassets%2Ftesla_apr15.glb?generation=1650049677688642&alt=media",
       (gltf) => {
-        model = gltf.scene.children[1];
-        model.scale.set(10, 10, 10);
+        model = gltf.scene.getObjectByName("Group006")
+        const boundingBox = new THREE.Box3()
+			  boundingBox.setFromObject(gltf.scene)
+			  var middle = new THREE.Vector3()
+			  var size = new THREE.Vector3()
+			  boundingBox.getSize(size)
+			  boundingBox.getCenter(middle)  
+        const maxSize=Math.max(size.x, size.y, size.z)
+        console.log("maxSize")
+        console.log(maxSize)
+        model.scale.set(2*1/maxSize,2*1/maxSize, 2* 1/maxSize);
         this.scene.add(model);
       }
     );
@@ -129,7 +139,7 @@ export default {
   },
   methods: {
     animate(nowMsec) {
-      console.log("11");
+      
       // keep looping
       requestAnimationFrame(this.animate);
       // measure time
@@ -178,7 +188,7 @@ export default {
         this.camera,
         {
           type: "pattern",
-          patternUrl: "./data/LogoSynode.patt",
+          patternUrl: "./data/synode.patt",
           // patternUrl : THREEx.ArToolkitContext.baseURL + '../data/data/patt.kanji',
           // as we controls the camera, set changeMatrixMode: 'cameraTransformMatrix'
           changeMatrixMode: "cameraTransformMatrix",
@@ -223,7 +233,7 @@ export default {
 
         this.initARContext();
       });
-      window.arToolkitSource = arToolkitSource;
+      window.arToolkitSource = this.arToolkitSource;
       setTimeout(() => {
         this.onResize();
       }, 2000);
@@ -231,3 +241,43 @@ export default {
   },
 };
 </script>
+<style>
+.arjs-loader {
+  margin: 0 auto;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.arjs-loader-spinner {
+  z-index: 10;
+  -webkit-transform: spin 1s linear infinite;
+  animation: spin 1s linear infinite;
+  border: 3px solid #ddd;
+  border-top: 3px solid #42a5f5;
+  border-radius: 50%;
+  height: 75px;
+  width: 75px;
+}
+
+@-webkit-keyframes spin {
+  to {
+    border-top-color: #42a5f5;
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spin {
+  to {
+    border-top-color: #42a5f5;
+    -webkit-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+</style>

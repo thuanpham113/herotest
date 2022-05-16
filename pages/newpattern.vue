@@ -1,24 +1,21 @@
-<template>
-  <div id="ARScene"></div>
-</template>
+<template></template>
 
 <script>
 import * as THREE from "three";
 import * as THREEx from "@ar-js-org/ar.js/three.js/build/ar-threex";
 import { GLTFLoader } from "../node_modules/three/examples/jsm/loaders/GLTFLoader";
-import { RoomEnvironment } from '../node_modules/three/examples/jsm/environments/RoomEnvironment';
-
+import { RoomEnvironment } from "../node_modules/three/examples/jsm/environments/RoomEnvironment";
 export default {
-  name: "ARScene",
   data() {
     return {
-      scene: null,
       renderer: null,
+      scene: null,
       camera: null,
-      arToolkitContext: null,
       arToolkitSource: null,
+      arToolkitContext: null,
+      markerControls: null,
       mixers: null,
-      clock:null
+      clock: null,
     };
   },
   mounted() {
@@ -34,8 +31,6 @@ export default {
 
     this.clock = new THREE.Clock();
 
-    this.mixers = [];
-
     this.renderer.setPixelRatio(window.devicePixelRatio);
 
     this.renderer.setClearColor(new THREE.Color("lightgrey"), 0);
@@ -47,7 +42,11 @@ export default {
 
     // init scene and camera
     this.scene = new THREE.Scene();
-
+    const pmremGenerator = new THREE.PMREMGenerator(this.renderer);
+    this.scene.environment = pmremGenerator.fromScene(
+      new RoomEnvironment(),
+      0.04
+    ).texture;
     //////////////////////////////////////////////////////////////////////////////////
     //		Initialize a basic camera
     //////////////////////////////////////////////////////////////////////////////////
@@ -62,11 +61,12 @@ export default {
     ////////////////////////////////////////////////////////////////////////////////
     //          handle arToolkitSource
     ////////////////////////////////////////////////////////////////////////////////
-
+    var mesh = new THREE.AxesHelper();
+    this.scene.add(mesh);
     this.arToolkitSource = new THREEx.ArToolkitSource({
       sourceType: "webcam",
-      sourceWidth: 480,
-      sourceHeight: 640,
+      sourceWidth: window.innerWidth > window.innerHeight ? 1280 : 720,
+      sourceHeight: window.innerWidth > window.innerHeight ? 720 : 1280,
       displayWidth: window.innerWidth,
       displayHeight: window.innerHeight,
     });
@@ -88,28 +88,38 @@ export default {
       console.log(ev);
     });
 
+    function onResize() {
+      this.arToolkitSource.onResizeElement();
+      this.arToolkitSource.copyElementSizeTo(this.renderer.domElement);
+      console.log("arToolkitContext.arController");
+      console.log(this.arToolkitContext.arController);
+      if (this.arToolkitContext.arController !== null) {
+        this.arToolkitSource.copyElementSizeTo(
+          this.arToolkitContext.arController.canvas
+        );
+      }
+    }
+
     ////////////////////////////////////////////////////////////////////////////////
     //          initialize arToolkitContext
     ////////////////////////////////////////////////////////////////////////////////
 
     // create atToolkitContext
-    
     this.arToolkitContext = new THREEx.ArToolkitContext(
       {
-        cameraParametersUrl: "./data/camera_para.dat",
         detectionMode: "mono",
-        canvasWidth: 480,
-        canvasHeight: 640,
+        canvasWidth: window.innerWidth > window.innerHeight ? 1280 : 720,
+        canvasHeight: window.innerWidth > window.innerHeight ? 720 : 1280,
       },
       {
-        sourceWidth: 480,
-        sourceHeight: 640,
+        sourceWidth: window.innerWidth > window.innerHeight ? 1280 : 720,
+        sourceHeight: window.innerWidth > window.innerHeight ? 720 : 1280,
       }
     );
     console.log("arToolkitContext");
     console.log(this.arToolkitContext);
     // initialize it
-    this.arToolkitContext.init(()=> {
+    this.arToolkitContext.init(() => {
       // copy projection matrix to camera
       this.camera.projectionMatrix.copy(
         this.arToolkitContext.getProjectionMatrix()
@@ -125,21 +135,24 @@ export default {
       this.arToolkitContext,
       this.camera,
       {
-        type: "pattern",
-          patternUrl: "./data/synode.patt",
-          // patternUrl : THREEx.ArToolkitContext.baseURL + '../data/data/patt.kanji',
-          // as we controls the camera, set changeMatrixMode: 'cameraTransformMatrix'
-          changeMatrixMode: "cameraTransformMatrix",
+        /* type: "nft",
+        descriptorsUrl: "./data/pattern-iconsynode",
+        changeMatrixMode: "cameraTransformMatrix", */
+         type: "pattern",
+      patternUrl:"./data/synode.patt",
+        smooth: true,
+        smoothCount: 5,
+        smoothTolerance: 0.01,
+        smoothThreshold: 2,
+        labelingMode: 'black_region'
       }
     );
     this.scene.visible = false;
 
     var root = new THREE.Object3D();
     this.scene.add(root);
-    console.log(this.markerControls);
-    console.log(this.camera);
     //////////////////////////////////////////////////////////////////////////////////
-    //		add an object in the scene
+    //		add an object in the this.scene
     //////////////////////////////////////////////////////////////////////////////////
 
     var threeGLTFLoader = new GLTFLoader();
@@ -149,33 +162,28 @@ export default {
       "https://storage.googleapis.com/download/storage/v1/b/rely-media/o/synode%2F23%2Fassets%2FGLB.glb?generation=1652451211787861&alt=media",
       (gltf) => {
         model = gltf.scene.children[1];
+        console.log("gltf");
+
         model.name = "Flamingo";
+        model.scale.set(1000, 1000, 1000);
 
-        var animation = gltf.animations[0];
-        var mixer = new THREE.AnimationMixer(model);
-        this.mixers.push(mixer);
-        var action = mixer.clipAction(animation);
-        action.play();
-
-        root.matrixAutoUpdate = false;
+        model.position.y = 400;
+        /*model.position.x = 100;
+        model.position.y = 100; */
         root.add(model);
+        console.log(root);
 
-        model.position.z = -200;
-        model.position.x = 100;
-        model.position.y = 100;
-        
+        //////////////////////////////////////////////////////////////////////////////////
+        //		render the whole thing on the page
+        //////////////////////////////////////////////////////////////////////////////////
+
+        requestAnimationFrame(this.animate);
       }
-      
     );
-    this.animate();
   },
   methods: {
     animate() {
-      if (this.mixers.length > 0) {
-        for (var i = 0; i < this.mixers.length; i++) {
-          this.mixers[i].update(this.clock.getDelta());
-        }
-      }
+      requestAnimationFrame(this.animate);
 
       if (!this.arToolkitSource.ready) {
         return;
@@ -183,12 +191,10 @@ export default {
 
       this.arToolkitContext.update(this.arToolkitSource.domElement);
 
-      // update scene.visible if the marker is seen
+      // update this.scene.visible if the marker is seen
       this.scene.visible = this.camera.visible;
-
+      console.log(this.camera.position.x);
       this.renderer.render(this.scene, this.camera);
-
-      requestAnimationFrame(this.animate);
     },
     onResize() {
       this.arToolkitSource.onResizeElement();
