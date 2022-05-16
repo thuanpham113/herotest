@@ -27,16 +27,27 @@ export default {
 
     // init renderer
     this.renderer = new THREE.WebGLRenderer({
+<<<<<<< HEAD
       antialias: true,  
       alpha: true,
     });
     this.renderer.setClearColor(new THREE.Color("lightgrey"), 0);
     this.renderer.setSize(window.innerWidth,window.innerHeight);
+=======
+      antialias: true,
+      alpha: true,
+    });
+    this.renderer.setClearColor(new THREE.Color("lightgrey"), 0);
+    this.renderer.setSize(640, 480);
+>>>>>>> ddfbadecb25023a89604d81fed647c7c082d2584
     this.renderer.domElement.style.position = "absolute";
     this.renderer.domElement.style.top = "0px";
     this.renderer.domElement.style.left = "0px";
     document.body.appendChild(this.renderer.domElement);
+<<<<<<< HEAD
     this.renderer.setPixelRatio( window.devicePixelRatio );
+=======
+>>>>>>> ddfbadecb25023a89604d81fed647c7c082d2584
 
     // init scene and camera
     this.scene = new THREE.Scene();
@@ -61,8 +72,13 @@ export default {
       // to read from the webcam
       sourceType: "webcam",
 
+<<<<<<< HEAD
       sourceWidth: window.innerWidth > window.innerHeight ? 1920 : 1080,
       sourceHeight: window.innerWidth > window.innerHeight ? 1080 : 1920,
+=======
+      sourceWidth: window.innerWidth > window.innerHeight ? 640 : 480,
+      sourceHeight: window.innerWidth > window.innerHeight ? 480 : 640,
+>>>>>>> ddfbadecb25023a89604d81fed647c7c082d2584
       displayWidth: window.innerWidth,
       displayHeight: window.innerHeight,
 
@@ -106,6 +122,7 @@ export default {
     var model;
 
     threeGLTFLoader.load(
+<<<<<<< HEAD
       "https://storage.googleapis.com/download/storage/v1/b/rely-media/o/synode%2F19%2Fassets%2Ftesla_apr15.glb?generation=1650049677688642&alt=media",
       (gltf) => {
         model = gltf.scene.getObjectByName("Group006")
@@ -119,6 +136,12 @@ export default {
         console.log("maxSize")
         console.log(maxSize)
         model.scale.set(2*1/maxSize,2*1/maxSize, 2* 1/maxSize);
+=======
+      "https://storage.googleapis.com/download/storage/v1/b/rely-media/o/synode%2F23%2Fassets%2FGLB.glb?generation=1652451211787861&alt=media",
+      (gltf) => {
+        model = gltf.scene.children[1];
+        model.scale.set(10, 10, 10);
+>>>>>>> ddfbadecb25023a89604d81fed647c7c082d2584
         this.scene.add(model);
       }
     );
@@ -139,7 +162,11 @@ export default {
   },
   methods: {
     animate(nowMsec) {
+<<<<<<< HEAD
       
+=======
+      console.log("11");
+>>>>>>> ddfbadecb25023a89604d81fed647c7c082d2584
       // keep looping
       requestAnimationFrame(this.animate);
       // measure time
@@ -188,7 +215,11 @@ export default {
         this.camera,
         {
           type: "pattern",
+<<<<<<< HEAD
           patternUrl: "./data/synode.patt",
+=======
+          patternUrl: "./data/LogoSynode.patt",
+>>>>>>> ddfbadecb25023a89604d81fed647c7c082d2584
           // patternUrl : THREEx.ArToolkitContext.baseURL + '../data/data/patt.kanji',
           // as we controls the camera, set changeMatrixMode: 'cameraTransformMatrix'
           changeMatrixMode: "cameraTransformMatrix",
@@ -233,7 +264,11 @@ export default {
 
         this.initARContext();
       });
+<<<<<<< HEAD
       window.arToolkitSource = this.arToolkitSource;
+=======
+      window.arToolkitSource = arToolkitSource;
+>>>>>>> ddfbadecb25023a89604d81fed647c7c082d2584
       setTimeout(() => {
         this.onResize();
       }, 2000);
